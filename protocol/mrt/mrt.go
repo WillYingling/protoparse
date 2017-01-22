@@ -2,6 +2,7 @@ package mrt
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	pbcom "github.com/CSUNetSec/netsec-protobufs/common"
@@ -151,4 +152,8 @@ func (m *mrtHhdrBuf) GetHeader() *pbbgp.MrtHeader {
 
 func (m *bgp4mpHdrBuf) GetHeader() *pbbgp.BGP4MPHeader {
 	return m.dest
+}
+
+func (m *bgp4mpHdrBuf) MarshalJSON() (data []byte, err error) {
+	return json.Marshal(m.dest)
 }

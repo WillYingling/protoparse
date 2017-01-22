@@ -3,6 +3,7 @@ package bgp
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	pbcom "github.com/CSUNetSec/netsec-protobufs/common"
@@ -49,6 +50,13 @@ func NewBgpUpdateBuf(buf []byte, v6, as4 bool) *bgpUpdateBuf {
 	}
 }
 
+func (bgph *bgpHeaderBuf) MarshalJSON() ([]byte, error) {
+	return json.Marshal(bgph.dest)
+}
+
+func (bgpup *bgpUpdateBuf) MarshalJSON() ([]byte, error) {
+	return json.Marshal(bgpup.dest)
+}
 func (b *bgpHeaderBuf) String() string {
 	return b.dest.String()
 }

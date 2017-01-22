@@ -60,9 +60,6 @@ func main() {
 			fileIndex = 2
 		}
 	}
-	if isJson {
-		fmt.Println("hi")
-	}
 	mrtfd, err := os.Open(os.Args[fileIndex])
 	errx(err)
 	defer mrtfd.Close()

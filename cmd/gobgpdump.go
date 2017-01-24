@@ -67,7 +67,7 @@ func main() {
 	numentries := 0
 	totsz := 0
 	t1 := time.Now()
-	for mrtScanner.Scan() && numentries < 1 {
+	for mrtScanner.Scan() {
 		ret := ""
 		numentries++
 		data := mrtScanner.Bytes()

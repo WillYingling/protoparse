@@ -55,8 +55,80 @@ func (bgph *bgpHeaderBuf) MarshalJSON() ([]byte, error) {
 }
 
 func (bgpup *bgpUpdateBuf) MarshalJSON() ([]byte, error) {
-	return json.Marshal(bgpup.dest)
+
+	ret := "{"
+	if bgpup.dest.AdvertizedRoutes != nil {
+		adv, err := marshalPrefixArray(bgpup.dest.AdvertizedRoutes.Prefixes, "advertized_routes")
+		if err != nil {
+			return nil, err
+		}
+		ret += adv
+	}
+	if bgpup.dest.WithdrawnRoutes != nil {
+		wtd, err := marshalPrefixArray(bgpup.dest.WithdrawnRoutes.Prefixes, "withdrawn_routes")
+		if err != nil {
+			return nil, err
+		}
+		ret += ","
+		ret += wtd
+	}
+	ret += ",\"attrs\":"
+	attrs, err := json.Marshal(NewAttrsWrapper(bgpup.dest.Attrs))
+	if err != nil {
+		return nil, err
+	}
+	ret += string(attrs)
+	ret += "}"
+	return []byte(ret), nil
 }
+
+type AttrsWrapper struct {
+	*pbbgp.BGPUpdate_Attributes
+	NextHop    net.IP            `json:"next_hop,omitempty"`
+	Aggregator AggregatorWrapper `json:"aggregator,omitempty"`
+}
+
+func NewAttrsWrapper(base *pbbgp.BGPUpdate_Attributes) *AttrsWrapper {
+	nexthop := net.IP(util.GetIP(base.NextHop))
+	return &AttrsWrapper{base, nexthop, NewAggregatorWrapper(base.Aggregator)}
+}
+
+type AggregatorWrapper struct {
+	*pbbgp.BGPUpdate_Aggregator
+	Ip net.IP `json:"ip,omitempty"`
+}
+
+func NewAggregatorWrapper(base *pbbgp.BGPUpdate_Aggregator) *AggregatorWrapper {
+	ip := net.IP(util.GetIP(base.Ip))
+	return &AggregatorWrapper{base, ip}
+}
+
+func marshalPrefixArray(parray []*pbcom.PrefixWrapper, name string) (string, error) {
+	ret := "\"" + name + "\""
+	ret += ":[{"
+	for ind, route := range parray {
+		if ind != 0 {
+			ret += ","
+		}
+
+		ip, err := json.Marshal(net.IP(util.GetIP(route.Prefix)))
+		if err != nil {
+			return "", err
+		}
+		ret += string(ip)
+		ret += ":"
+		mask, err := json.Marshal(route.Mask)
+		if err != nil {
+			return "", err
+		}
+		ret += string(mask)
+		ret += "}"
+	}
+
+	ret += "]"
+	return ret, nil
+}
+
 func (b *bgpHeaderBuf) String() string {
 	return b.dest.String()
 }

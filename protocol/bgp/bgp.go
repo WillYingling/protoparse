@@ -73,23 +73,28 @@ func (bgpup *bgpUpdateBuf) MarshalJSON() ([]byte, error) {
 		ret += wtd
 	}
 	ret += ",\"attrs\":"
-	attrs, err := json.Marshal(NewAttrsWrapper(bgpup.dest.Attrs))
-	if err != nil {
-		return nil, err
+	if bgpup.dest.Attrs != nil {
+		attrs, err := json.Marshal(NewAttrsWrapper(bgpup.dest.Attrs))
+		if err != nil {
+			return nil, err
+		}
+		ret += string(attrs)
 	}
-	ret += string(attrs)
 	ret += "}"
 	return []byte(ret), nil
 }
 
 type AttrsWrapper struct {
 	*pbbgp.BGPUpdate_Attributes
-	NextHop    net.IP            `json:"next_hop,omitempty"`
-	Aggregator AggregatorWrapper `json:"aggregator,omitempty"`
+	NextHop    net.IP             `json:"next_hop,omitempty"`
+	Aggregator *AggregatorWrapper `json:"aggregator,omitempty"`
 }
 
 func NewAttrsWrapper(base *pbbgp.BGPUpdate_Attributes) *AttrsWrapper {
-	nexthop := net.IP(util.GetIP(base.NextHop))
+	var nexthop net.IP
+	if base.NextHop != nil {
+		nexthop = net.IP(util.GetIP(base.NextHop))
+	}
 	return &AttrsWrapper{base, nexthop, NewAggregatorWrapper(base.Aggregator)}
 }
 
@@ -99,6 +104,9 @@ type AggregatorWrapper struct {
 }
 
 func NewAggregatorWrapper(base *pbbgp.BGPUpdate_Aggregator) *AggregatorWrapper {
+	if base == nil {
+		return nil
+	}
 	ip := net.IP(util.GetIP(base.Ip))
 	return &AggregatorWrapper{base, ip}
 }

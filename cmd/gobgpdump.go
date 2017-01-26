@@ -93,12 +93,12 @@ func main() {
 				log.Printf("Failed to marshal BGP update to json")
 			}
 
-			ret += "["
+			ret += "{"
 			ret += string(mrthj)
 			ret += string(bgp4hj)
 			ret += string(bgphj)
 			ret += string(bgpupj)
-			ret += "]"
+			ret += "}"
 		} else {
 			ret += fmt.Sprintf("[%d] MRT Header: %s\n", numentries, mrth)
 			ret += fmt.Sprintf("BGP4MP Header:%s\n", bgp4h)
